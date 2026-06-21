@@ -20,4 +20,7 @@ provider "aws" {
     sqs      = var.aws_endpoint
     s3       = var.aws_endpoint
   }
+
+  # Fix S3 path-style for local
+  s3_use_path_style = true
 }
