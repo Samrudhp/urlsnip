@@ -1,0 +1,76 @@
+prometheus:
+  prometheusSpec:
+    scrapeInterval: 15s
+    evaluationInterval: 15s
+    additionalScrapeConfigs:
+      - job_name: urlsnip-shortener
+        static_configs:
+          - targets: ['shortener-service.urlsnip.svc.cluster.local:8000']
+        metrics_path: /metrics
+
+      - job_name: urlsnip-redirect
+        static_configs:
+          - targets: ['redirect-service.urlsnip.svc.cluster.local:8001']
+        metrics_path: /metrics
+
+      - job_name: urlsnip-analytics
+        static_configs:
+          - targets: ['analytics-service.urlsnip.svc.cluster.local:8002']
+        metrics_path: /metrics
+
+alertmanager:
+  enabled: true
+
+grafana:
+  enabled: true
+  adminPassword: admin123
+  service:
+    type: ClusterIP
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: default
+          orgId: 1
+          folder: URLSnip
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+  dashboards:
+    default:
+      urlsnip-overview:
+        json: |
+          {
+            "title": "URLSnip Overview",
+            "panels": [
+              {
+                "title": "Request Rate",
+                "type": "graph",
+                "targets": [{
+                  "expr": "rate(http_requests_total[1m])"
+                }]
+              },
+              {
+                "title": "Request Latency p99",
+                "type": "graph",
+                "targets": [{
+                  "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket[5m]))"
+                }]
+              },
+              {
+                "title": "Error Rate",
+                "type": "graph",
+                "targets": [{
+                  "expr": "rate(http_requests_total{status=~'5..'}[1m])"
+                }]
+              }
+            ]
+          }
+
+nodeExporter:
+  enabled: true
+
+kubeStateMetrics:
+  enabled: true

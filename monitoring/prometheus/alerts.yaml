@@ -1,0 +1,53 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: urlsnip-alerts
+  namespace: monitoring
+  labels:
+    release: prometheus-stack
+spec:
+  groups:
+    - name: urlsnip.rules
+      rules:
+        - alert: HighErrorRate
+          expr: |
+            rate(http_requests_total{status=~"5.."}[5m]) > 0.05
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High error rate on {{ $labels.job }}"
+            description: "Error rate is {{ $value }} req/s"
+
+        - alert: HighLatency
+          expr: |
+            histogram_quantile(0.99,
+              rate(http_request_duration_seconds_bucket[5m])
+            ) > 1.0
+          for: 2m
+          labels:
+            severity: warning
+          annotations:
+            summary: "High p99 latency on {{ $labels.job }}"
+            description: "p99 latency is {{ $value }}s"
+
+        - alert: PodNotReady
+          expr: |
+            kube_pod_status_ready{namespace="urlsnip", condition="true"} == 0
+          for: 1m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pod not ready in urlsnip namespace"
+            description: "Pod {{ $labels.pod }} is not ready"
+
+        - alert: HPAMaxedOut
+          expr: |
+            kube_horizontalpodautoscaler_status_current_replicas{namespace="urlsnip"}
+            ==
+            kube_horizontalpodautoscaler_spec_max_replicas{namespace="urlsnip"}
+          for: 5m
+          labels:
+            severity: warning
+          annotations:
+            summary: "HPA {{ $labels.horizontalpodautoscaler }} at max replicas"

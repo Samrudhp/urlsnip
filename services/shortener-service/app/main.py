@@ -8,6 +8,9 @@ from pydantic import BaseModel
 
 app = FastAPI(title="Shortener Service")
 
+from prometheus_fastapi_instrumentator import Instrumentator
+Instrumentator().instrument(app).expose(app)
+
 # Clients
 dynamodb = boto3.resource(
     "dynamodb",

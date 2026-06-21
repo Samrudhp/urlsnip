@@ -6,6 +6,9 @@ from fastapi.responses import RedirectResponse
 
 app = FastAPI(title="Redirect Service")
 
+from prometheus_fastapi_instrumentator import Instrumentator
+Instrumentator().instrument(app).expose(app)
+
 dynamodb = boto3.resource(
     "dynamodb",
     endpoint_url=os.getenv("AWS_ENDPOINT_URL", "http://localhost:4566"),
