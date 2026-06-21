@@ -12,7 +12,7 @@ Shorten a URL, track redirects in real time, and query analytics — all backed 
 graph TD
     Client([Client])
 
-    subgraph K8s["Kubernetes Cluster (Floci EKS / k3s)"]
+    subgraph K8s["Kubernetes Cluster (EKS / k3s)"]
         SH[shortener-service\nFastAPI · port 8000]
         RD[redirect-service\nFastAPI · port 8001]
         AN[analytics-service\nFastAPI · port 8002]
@@ -22,7 +22,7 @@ graph TD
         RD -->|lookup| RE
     end
 
-    subgraph AWS["AWS Services (Floci)"]
+    subgraph AWS["AWS Services"]
         DY[(DynamoDB\nurlsnip table)]
         SQ[SQS\nurlsnip-events]
         S3[(S3\nurlsnip-backups)]
@@ -117,7 +117,7 @@ sequenceDiagram
 
 ## Infrastructure
 
-All AWS resources are provisioned via Terraform targeting Floci — a free, open-source local AWS emulator. The same Terraform HCL runs against real AWS with zero changes.
+All AWS resources are provisioned via Terraform. The same Terraform HCL works against AWS with zero changes.
 
 ```mermaid
 graph LR
@@ -206,15 +206,15 @@ graph LR
 |---|---|
 | Services | Python 3.11, FastAPI, Uvicorn |
 | Cache | Redis 7 |
-| Database | AWS DynamoDB (via Floci) |
-| Queue | AWS SQS (via Floci) |
-| Storage | AWS S3 (via Floci) |
+| Database | AWS DynamoDB |
+| Queue | AWS SQS |
+| Storage | AWS S3 |
 | Containers | Docker, Docker Compose |
-| Orchestration | Kubernetes (k3s via Floci EKS) |
+| Orchestration | Kubernetes (k3s via  EKS) |
 | IaC | Terraform 1.15+ |
 | Monitoring | Prometheus, Grafana, Loki, Promtail |
 | Image Baking | Packer (ops toolbox) |
-| Local AWS | Floci (free LocalStack alternative) |
+| AWS | Cloud Service |
 
 ---
 
@@ -276,19 +276,18 @@ urlsnip/
 - Terraform
 - kubectl
 - Helm
-- Floci CLI
 - AWS CLI
 
 ### Start
 
 ```bash
-# Set AWS env (Floci uses dummy creds)
+# Set AWS env 
 export AWS_ACCESS_KEY_ID=test
 export AWS_SECRET_ACCESS_KEY=test
 export AWS_DEFAULT_REGION=us-east-1
 export KUBECONFIG=~/.kube/urlsnip-local
 
-# Start Floci (local AWS)
+# Start 
 docker-compose up floci -d
 
 # Provision AWS resources
